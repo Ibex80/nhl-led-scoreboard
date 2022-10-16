@@ -1,17 +1,12 @@
 import sys
 import time
 from datetime import datetime, timedelta
-
-from apscheduler.events import EVENT_ALL, EVENT_JOB_ERROR, EVENT_JOB_MISSED
 from data.scoreboard_config import ScoreboardConfig
 from renderer.main import MainRenderer
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
-#from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-from utils import args, led_matrix_options, stop_splash_service, scheduler_event_listener
-#from utils import args, led_matrix_options, scheduler_event_listener
+from utils import args, led_matrix_options, stop_splash_service
 from data.data import Data
 import threading
-import queue
 from sbio.dimmer import Dimmer
 from sbio.pushbutton import PushButton
 from sbio.motionsensor import Motion
@@ -23,8 +18,7 @@ from api.weather.owmWeather import owmWxWorker
 from api.weather.ecAlerts import ecWxAlerts
 from api.weather.nwsAlerts import nwsWxAlerts
 from api.weather.wxForecast import wxForecast
-import asyncio
-from env_canada import ECWeather
+from env_canada import ECData
 from renderer.matrix import Matrix
 from update_checker import UpdateChecker
 import tzlocal
@@ -38,7 +32,7 @@ import os
 
 SCRIPT_NAME = "NHL-LED-SCOREBOARD"
 
-SCRIPT_VERSION = "1.6.x.beta"
+SCRIPT_VERSION = "1.6.10"
 
 
 def run():
@@ -94,6 +88,7 @@ def run():
     # Will also allow for weather alert to interrupt display board if you want
     sleepEvent = threading.Event()
 
+
     # Start task scheduler, used for UpdateChecker and screensaver, forecast, dimmer and weather
     scheduler = BackgroundScheduler(timezone=str(tzlocal.get_localzone()), job_defaults={'misfire_grace_time': None})
     scheduler.add_listener(scheduler_event_listener, EVENT_JOB_MISSED | EVENT_JOB_ERROR)
@@ -103,7 +98,7 @@ def run():
 
     # Make sure we have a valid location for the data.latlng as the geocode can return a None
     # If there is no valid location, skip the weather boards
-   
+    
     #Create EC data feed handler
     if data.config.weather_enabled or data.config.wxalert_show_alerts:
         if data.config.weather_data_feed.lower() == "ec" or data.config.wxalert_alert_feed.lower() == "ec":           
